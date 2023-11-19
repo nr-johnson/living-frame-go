@@ -1,0 +1,299 @@
+:root {
+    --transitionTime: 1s;
+    --color0: #04348c;
+    --color00: #04348c50;
+    --color1: #a6bccc;
+    --color2: #343d5c;
+}
+body {
+    position: absolute;
+    margin: 0;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    width: 100vw;
+    background: black;
+    color: white;
+    cursor: none;
+}
+
+main {
+    pointer-events: none;
+    position: relative;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    cursor: none;
+}
+
+#images figure {
+    position: absolute;
+    top: 0;
+    left: 0;
+    margin: 0;
+    height: 100%;
+    width: 100%;
+}
+
+#images figure {
+    opacity: 0;
+    transition: var(--transitionTime);
+}
+#images figure.show {
+    opacity: 1;
+    transition: var(--transitionTime);
+}
+/* Slide animations */
+/* #images figure.prev:not(.show) {
+    animation-name: prevOut;
+    animation-duration: .5s;
+}
+@keyframes prevOut {
+    from { opacity: 1; transform: translateX(0); }
+    to { opacity: 1; transform: translateX(-100%); }
+}
+#images figure.next.show {
+    animation-name: nextIn;
+    animation-duration: .5s;
+}
+@keyframes nextIn {
+    from { transform: translateX(100%); }
+    to { transform: translateX(0); }
+} */
+
+
+#images img {
+    height: 100%;
+    width: 100%;
+    object-fit: contain;
+    object-position: center;
+}
+
+#pageAlert {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 100%;
+    background: none;
+    pointer-events: none;
+    opacity: 0;
+    overflow: hidden;
+    transition: .25s;
+}
+#pageAlert.show {
+    opacity: 1;
+    pointer-events: all;
+    transition: .25s;
+}
+
+#alertDialog {
+    position: absolute;
+    bottom: 1rem;
+    left: 1rem;
+    transform: translateY(calc(100% + 2rem));
+    background: white;
+    color: black;
+    border: 2px solid transparent;
+    border-radius: 8px;
+    box-shadow: 0 0 8px black;
+    padding: 2.5rem;
+}
+
+/* Show alert animaton */
+#pageAlert.show #alertDialog {
+    transform: translateY(0);
+    animation-name: showAlert;
+    animation-duration: .25s;
+    animation-timing-function: ease-out;
+}
+@keyframes showAlert {
+    from { transform: translateY(calc(100% + 2rem)); }
+    to { transform: translateY(0); }
+}
+
+/* Hide alert animation */
+#pageAlert:not(.show) #alertDialog {
+    animation-name: hideAlert;
+    animation-duration: .25s;
+    animation-timing-function: ease-out;
+}
+@keyframes hideAlert {
+    from { transform: translateY(0); }
+    to { transform: translateY(calc(100% + 2rem)); }
+}
+
+#alertMessage {
+    font-family: sans-serif;
+    font-size: 16pt;
+    font-weight: 800;
+    margin: 0;
+    text-align: center;
+}
+
+#pageAlert.subtle #alertDialog {
+    padding: .75rem;
+}
+#pageAlert.subtle #alertMessage{
+    font-size: 10pt;
+}
+
+#pageAlert.success #alertDialog {
+    border-color: green;
+}
+#pageAlert.success #alertMessage {
+    color: green;
+}
+
+#pageAlert.danger #alertDialog {
+    border-color: red;
+}
+#pageAlert.danger #alertDialog::after {
+    content: "!";
+    display: block;
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 14pt;
+    line-height: 1;
+    padding: .5rem;
+    border-radius: 50%;
+    text-align: center;
+    height: 1rem;
+    width: 1rem;
+    background: white;
+    color: red;
+    border: 2px solid red;
+    border-color: red;
+}
+#pageAlert.danger #alertMessage {
+    color: red;
+}
+
+.formMain {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: var(--color00, #00000050);
+    /* overflow: hidden; */
+    opacity: 0;
+    pointer-events: none;
+    transition: .5s;
+}
+.formMain.show {
+    opacity: 1;
+    pointer-events: all;
+    transition: .5s;
+}
+
+.formMain .dialog {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: var(--color1, white);
+    color: var(--color2, black);
+    padding: 2rem;
+    width: fit-content;
+    font-family: sans-serif;
+    max-width: 90%;
+    max-height: 90%;
+    border-radius: 8px;
+}
+
+#slideShowSettings {
+    position: absolute;
+    z-index: 1000;
+}
+
+
+button {
+    padding: 4px 12px 6px 12px;
+    background: var(--color2, transparent);
+    color: var(--color1, black);
+    outline: none;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+form .form-input {
+    max-width: 21rem;
+}
+form h3 {
+    margin: 0 0 8px 0;
+    text-align: center;
+}
+form label {
+    display: inline-block;
+    margin: 12px 0 2px 0;
+    width: 100%;
+    font-size: 10pt;
+}
+form button {
+    margin-top: 12px;
+    position: relative;
+    left: 100%;
+    transform: translateX(-100%);
+}
+form input {
+    background: transparent;
+    width: 100%;
+    border: none;
+    outline: none;
+    border-bottom: 1px solid var(--color2, black);
+    padding: 4px 0 4px 0;
+}
+form input.error {
+    border-color: red;
+}
+#slideShowSettings {
+    display: flex;
+    flex-direction: row;
+}
+
+#slideShowSettings .dialog {
+    display: flex;
+    flex-direction: column;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    transform: translate(0);
+    min-width: 12rem;
+    max-width: 75%;
+    max-height: none;
+    border-radius: 0;
+}
+#slideShowSettings.show .dialog{
+    animation-name: slideIn;
+    animation-duration: .5s;
+    animation-timing-function: ease-out;
+}
+@keyframes slideIn {
+    from { transform: translateX(-100%); }
+    to { transform: translateX(0); }
+}
+
+#slideShowSettings:not(.show) .dialog {
+    opacity: 0;
+    animation-name: slideOut;
+    animation-duration: .5s;
+    animation-timing-function: ease-out;
+}
+
+@keyframes slideOut {
+    from { opacity: 1; transform: translateX(0); }
+    to { opacity: 0; transform: translateX(-100%); }
+}
+
+.flex-to-bottom {
+    flex: 1 0 auto;
+}
+
+/* #slideShowSettings .form-input {
+    width: 8rem;
+} */

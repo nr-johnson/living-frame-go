@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="stylesheet" href="/static/stylesheets/style.css">
+
+    <title>Living Frame</title>
+</head>
+<body>
+    <main>
+        <div id="images" data-count="{{ .Images | len -}}" data-configured="{{ .Configured }}">
+            {{ range .Images }}
+                <figure>
+                    <img src="/static/images/{{ . }}" />
+                </figure>
+            {{ end }}
+        </div>
+    </main>
+    
+    <div id="pageAlert">
+        <div id="alertDialog">
+            <p id="alertMessage"></p>
+        </div>
+    </div>
+
+    <div id="photoprismLogin" class="formMain">
+        <div class="dialog">
+            <form id="loginForm" action="/login" method="POST" enctype="application/x-www-form-urlencoded">
+                <h3>Connect to Photoprism</h3>
+
+                <div class="form-input">
+                    <label for="uri"> Photoprism URL:</label>
+                    <input type="text" name="uri" placeholder="i.e. https://www.example.com">
+                </div>
+
+                <div class="form-input">
+                    <label for="username">Username:</label>
+                    <input type="text" name="username">
+                </div>
+
+                <div class="form-input">
+                    <label for="password">Password:</label>
+                    <input type="password" name="password">
+                </div>
+
+                <div class="form-input button">
+                    <button type="submit">Login</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="slideShowSettings" class="formMain">
+        <div class="dialog">
+            <div class="flex-to-bottom"></div>
+            <form id="settingsForm" action="/updateconfig" method="POST" enctype="application/x-www-form-urlencoded">
+                <div class="form-input">
+                    <label for="delay">Slide Delay</label>
+                    <input type="number" name="delay">
+                </div>
+
+                <div class="form-input">
+                    <label for="fade">Fade Duration</label>
+                    <input type="number" name="fade">
+                </div>
+
+                <div class="form-input">
+                    <button type="submit">Submit</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="/static/scripts/script.js"></script>
+</body>
+</html>
