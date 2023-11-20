@@ -37,6 +37,11 @@ function initialize() {
 
         config = data
 
+        if (!data.connected) {
+            toggleWifiEdit()
+            return
+        }
+
         if (!data.configured) {
             togglePPEdit()
             return
