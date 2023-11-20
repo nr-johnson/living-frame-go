@@ -2,6 +2,8 @@ const imagesMain = document.querySelector('#images')
 const alertMain = document.querySelector('#pageAlert')
 const photoPrismLogin = document.querySelector('#photoprismLogin')
 const slideShowSettings = document.querySelector('#slideShowSettings')
+const wifiEdit = document.querySelector('#wifiEdit')
+const body = document.querySelector('body')
 let config = {}
 let delay = 10 // Seconds to view each slide
 let fade = 3 // Seconds the fade between slides lasts
@@ -9,6 +11,19 @@ let slideTime = delay * 1000
 let slideTimeout = null
 let syncInterval = null
 let paused = false
+
+const formsConts = document.querySelectorAll('.formMain')
+
+formsConts.forEach(cont => {
+    const background = cont.querySelector('.background')
+    const form = cont.querySelector('form')
+
+    background.addEventListener('click', () => {
+        body.classList.remove('active')
+        cont.classList.remove('show')
+        form.reset()
+    })
+})
 
 function initialize() {
     ajax('GET', '/getconfig').then(result => {
@@ -23,7 +38,7 @@ function initialize() {
         config = data
 
         if (!data.configured) {
-            photoPrismLogin.classList.add('show')
+            togglePPEdit()
             return
         }
 
@@ -94,6 +109,7 @@ function sync(prompted) {
             pageMessage('Images synced successfully!', 3000, 'subtle success')
         }
 
+        // Restart 
         syncInterval = setInterval(() => {
             sync()
         }, 60 * 1000)
@@ -130,6 +146,7 @@ function updateConfig() {
         delay = config.delay
         slideTime = delay * 1000
         fade = config.fade
+        document.documentElement.style.setProperty('--transitionTime', fade + `s`);
 
         clearTimeout(slideTimeout)
         slideTimeout = setTimeout(() => {
@@ -185,7 +202,10 @@ function hidePageMessage() {
     
 }
 function overrideMessage(msg, duration, type) {
+    alertMain.classList = ''
+    
     clearTimeout(alertTimeout)
+
     activeMessage = true
     waitLine = []
 
@@ -253,6 +273,8 @@ detailsForm.addEventListener('submit', event => {
             slide()
         }, config.delay * 1000)
 
+        slideShowSettings.classList.remove('show')
+        body.classList.remove('active')
         pageMessage('Settings saved!', 3000, 'success')
     }).catch(() => {
         pageMessage('Error saving details', 10000, 'danger')
@@ -310,20 +332,74 @@ function logout() {
 }
 
 let saveTimeout = null
-function adjustDelay() {
+let sliding = false
+let saving = false
+function adjustAttribute(attr, steps, max) {
     clearTimeout(saveTimeout)
-    let del = parseInt(config.delay) + 5
+    let amnt = steps
 
-    if (del >= 305) {
-        del = 5
+    if (config[attr] >= 120) {
+        amnt = 60
+    } else if (config[attr] >= 30) {
+        amnt = 30
     }
 
-    config.delay = del
-    overrideMessage(`Slide duration:<br>${config.delay} seconds`, 3000)
+    if (sliding) {
+        let att = parseInt(config[attr]) + amnt
+
+        if (att >= max + amnt) {
+            att = steps
+        }
+
+        config[attr] = att
+        saving = true
+    } else sliding = true    
+
+    overrideMessage(`${attr.substring(0,1).toUpperCase()}${attr.substring(1)}:<br>${timeToText(config[attr])}`, 3000) 
 
     saveTimeout = setTimeout(() => {
-        updateConfig()
+        if (saving) {
+            updateConfig()
+        }
+        saving = false
+        sliding = false        
     }, 3000)
+    
+}
+
+function timeToText(seconds) {
+    if (seconds < 60) return `${seconds} ${seconds > 1 ? 'seconds' : 'second'}`
+
+    const minutes = Math.floor(seconds / 60)
+    const minutesText = minutes > 1 ? 'minutes' : 'minute'
+    const secs = seconds % 60
+    const secsText = secs > 1 ? 'seconds' : 'second'
+
+    if (secs <= 0) return `${minutes} ${minutesText}`
+
+    return `${minutes} ${minutesText} ${secs} ${secsText}`
+}
+
+function togglePPEdit() {
+    const uri = photoPrismLogin.querySelector('input[name="uri"]')
+    const username = photoPrismLogin.querySelector('input[name="username"]')
+
+    uri.value = config.uri
+    username.value = config.username
+
+    body.classList.add('active')
+    slideShowSettings.classList.remove('show')
+    photoPrismLogin.classList.add('show')
+}
+
+function toggleWifiEdit() {
+    const network = wifiEdit.querySelector('input[name="network"]')
+
+    network.value = config.network
+
+    body.classList.add('active')
+    slideShowSettings.classList.remove('show')
+    wifiEdit.classList.add('show')
 }
 
 // Keys meant to be from ui buttons (temp regular keystrokes)
@@ -332,12 +408,26 @@ document.addEventListener('keydown', event => {
 
     // toggle animation settings
     if (event.key == 'd') {
-        adjustDelay()
+        adjustAttribute('delay', 5, 600)
     }
     if (event.key == 'f') {
-        
+        adjustAttribute('fade', 1, 10)
     }
 })
+
+let moveTimeout = null
+document.addEventListener('mousemove', () => {
+
+    clearTimeout(moveTimeout)
+
+    body.classList.add('interacting')
+
+    moveTimeout = setTimeout(() => {
+        body.classList.remove('interacting')
+    }, 5000)
+
+})
+
 
 // ---VVV--- Admin controls ---VVV---
 // document.addEventListener('click', () => {
@@ -346,6 +436,23 @@ document.addEventListener('keydown', event => {
 document.addEventListener('keydown', event => {
     console.log(event)
 
+    if (!event.shiftKey || !event.ctrlKey || body.classList.contains('active')) return
+
+    event.preventDefault()
+
+    if (event.key == 'B') {
+        ajax('POST', '/wifi').then(response => {
+            console.log(response)
+        })
+    }
+
+    if (event.key == 'O') {
+        body.classList.add('active')
+        photoPrismLogin.classList.add('show')
+    }
+    if (event.key == 'T') {
+        alert(timeToText(121))
+    }
     // next slide
     if (event.key == 'ArrowRight') {
         slide()
@@ -356,19 +463,20 @@ document.addEventListener('keydown', event => {
     }
 
     // toggle animation settings
-    if (event.key == 'e') {
+    if (event.key == 'E') {
         slideShowSettings.classList.toggle('show')
     }
+    
     // Show dummy message
-    if (event.key == 'm') {
+    if (event.key == 'M') {
         pageMessage('This is a message', 3000, 'danger')
     }
     // Refresh images
-    if (event.key == 'r') {
+    if (event.key == 'R') {
         sync(true)
     }
     // logout of photoprism
-    if (event.key == 'l') {
+    if (event.key == 'L') {
         logout()
     }
 })

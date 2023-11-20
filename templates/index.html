@@ -26,7 +26,35 @@
         </div>
     </div>
 
+    <div id="slideShowSettings" class="formMain">
+        <div class="background"></div>
+        <div class="dialog">
+            <div class="edit-buttons">
+                <button onclick="togglePPEdit()">Edit Login</button>
+                <br>
+                <button onclick="toggleWifiEdit()">Edit Wifi</button>
+            </div>
+            <div class="flex-to-bottom"></div>
+            <form id="settingsForm" action="/updateconfig" method="POST" enctype="application/x-www-form-urlencoded">
+                <div class="form-input">
+                    <label for="delay">Slide Delay</label>
+                    <input type="number" name="delay">
+                </div>
+
+                <div class="form-input">
+                    <label for="fade">Fade Duration</label>
+                    <input type="number" name="fade">
+                </div>
+
+                <div class="form-input">
+                    <button type="submit">Submit</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <div id="photoprismLogin" class="formMain">
+        <div class="background"></div>
         <div class="dialog">
             <form id="loginForm" action="/login" method="POST" enctype="application/x-www-form-urlencoded">
                 <h3>Connect to Photoprism</h3>
@@ -53,22 +81,24 @@
         </div>
     </div>
 
-    <div id="slideShowSettings" class="formMain">
+    <div id="wifiEdit" class="formMain">
+        <div class="background"></div>
         <div class="dialog">
-            <div class="flex-to-bottom"></div>
-            <form id="settingsForm" action="/updateconfig" method="POST" enctype="application/x-www-form-urlencoded">
+            <form id="wifiForm" action="/editwifi" method="POST" enctype="application/x-www-form-urlencoded">
+                <h3>Connect to Photoprism</h3>
+
                 <div class="form-input">
-                    <label for="delay">Slide Delay</label>
-                    <input type="number" name="delay">
+                    <label for="network"> Network Name:</label>
+                    <input type="text" name="network">
                 </div>
 
                 <div class="form-input">
-                    <label for="fade">Fade Duration</label>
-                    <input type="number" name="fade">
+                    <label for="password">Password:</label>
+                    <input type="text" name="password">
                 </div>
 
-                <div class="form-input">
-                    <button type="submit">Submit</button>
+                <div class="form-input button">
+                    <button type="submit">Connect</button>
                 </div>
             </form>
         </div>

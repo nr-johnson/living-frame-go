@@ -8,6 +8,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"fmt"
 	"os"
+	"os/exec"
 	"io"
 	"io/ioutil"
 	"path"
@@ -30,6 +31,10 @@ func (t *Template) Render(w io.Writer, name string, data interface{}, c echo.Con
 type Config struct {
 	Username string `json:"username"`
 	Password string `json:"password"`
+	Logged_in bool `json:"logged_in"`
+	Network string `json:"network"`
+	Network_password string `json:"network_password"`
+	Connected bool `json:"connected"`
 	Uri string `json:"uri"`
 	Delay string `json:"delay"`
 	Fade string `json:"fade"`
@@ -181,6 +186,19 @@ func main() {
 		logout(client, config)
 
 		return c.JSON(http.StatusOK, safeConfig(config))
+	})
+
+	e.POST("/wifi", func(c echo.Context) error {
+		cmdStruct := exec.Command("lsblk")
+
+		out,err := cmdStruct.Output()
+		if err != nil {
+			fmt.Println(err)
+		}
+
+		fmt.Println(string(out))
+
+		return c.String(http.StatusOK, string(out))
 	})
 	
 	e.Logger.Fatal(e.Start(":1323"))
@@ -358,10 +376,9 @@ func getConfigData() Config {
 }
 func safeConfig(config Config) Config {
 	safeData := config
-	
-	safeData.Username = ""
+
 	safeData.Password = ""
-	safeData.Uri = ""
+	safeData.Network_password = ""
 
 	return safeData
 }
