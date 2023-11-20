@@ -188,6 +188,29 @@ func main() {
 		return c.JSON(http.StatusOK, safeConfig(config))
 	})
 
+	e.GET("/networks", func(c echo.Context) error {
+		grep := exec.Command("grep", "ESSID")
+		cmd := exec.Command("sudo", "iwlist", "wlan0", "scanning")
+
+		pipe, err := cmd.StdoutPipe()
+		if err != nil {
+			fmt.Println(err)
+		}
+
+		grep.Stdin = pipe
+
+		cmd.Start()
+
+		out, err := grep.Output()
+		if err != nil {
+			fmt.Println(err)
+		}
+
+		fmt.Println(string(out))
+
+		return c.String(http.StatusOK, string(out))
+	})
+
 	e.POST("/wifi", func(c echo.Context) error {
 		cmdStruct := exec.Command("lsblk")
 

@@ -409,7 +409,6 @@ function toggleWifiEdit() {
 
 // Keys meant to be from ui buttons (temp regular keystrokes)
 document.addEventListener('keydown', event => {
-    console.log(event)
 
     // toggle animation settings
     if (event.key == 'd') {
@@ -439,15 +438,27 @@ document.addEventListener('mousemove', () => {
 //     slide()
 // })
 document.addEventListener('keydown', event => {
-    console.log(event)
+    // console.log(event)
 
     if (!event.shiftKey || !event.ctrlKey || body.classList.contains('active')) return
 
     event.preventDefault()
 
     if (event.key == 'B') {
-        ajax('POST', '/wifi').then(response => {
-            console.log(response)
+        ajax('GET', '/networks').then(response => {
+            const myRegexp = /"([^"]*)"/g
+            const ssids = []
+            let match = myRegexp.exec(response);
+            do {
+                if (match != null) {
+                    let text = match[1] ? match[1] : match[0]
+                    if (text != "" && text != '""') {
+                        ssids.push(text);
+                    }
+                }
+                match = myRegexp.exec(response);
+            } while (match != null);
+            console.log(ssids)
         })
     }
 
