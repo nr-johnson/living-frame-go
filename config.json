@@ -1,0 +1,12 @@
+{
+"username": "",
+"password": "",
+"logged_in": false,
+"network": "",
+"network_password": "",
+"connected": false,
+"uri": "",
+"delay": "10",
+"fade": "2",
+"configured": false
+}
