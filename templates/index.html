@@ -19,12 +19,8 @@
             {{ end }}
         </div>
     </main>
-    
-    <div id="pageAlert">
-        <div id="alertDialog">
-            <p id="alertMessage"></p>
-        </div>
-    </div>
+
+    <div id="toggleSettings"></div>
 
     <div id="slideShowSettings" class="formMain">
         <div class="background"></div>
@@ -85,11 +81,11 @@
         <div class="background"></div>
         <div class="dialog">
             <form id="wifiForm" action="/editwifi" method="POST" enctype="application/x-www-form-urlencoded">
-                <h3>Connect to Photoprism</h3>
+                <h3>Connect to Wifi</h3>
 
                 <div class="form-input">
                     <label for="network"> Network Name:</label>
-                    <input type="text" name="network">
+                    <select name="network"></select>
                 </div>
 
                 <div class="form-input">
@@ -101,6 +97,12 @@
                     <button type="submit">Connect</button>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <div id="pageAlert">
+        <div id="alertDialog">
+            <p id="alertMessage"></p>
         </div>
     </div>
 

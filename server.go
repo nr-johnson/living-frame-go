@@ -224,6 +224,10 @@ func main() {
 		return c.String(http.StatusOK, string(out))
 	})
 	
+	// e.GET("/shutdown", func(c echo.Context) error {
+
+	// })
+
 	e.Logger.Fatal(e.Start(":1323"))
 }
 

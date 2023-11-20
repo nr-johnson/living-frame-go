@@ -4,6 +4,7 @@ const photoPrismLogin = document.querySelector('#photoprismLogin')
 const slideShowSettings = document.querySelector('#slideShowSettings')
 const wifiEdit = document.querySelector('#wifiEdit')
 const body = document.querySelector('body')
+const toggleSettings = document.querySelector('#toggleSettings')
 let config = {}
 let delay = 10 // Seconds to view each slide
 let fade = 3 // Seconds the fade between slides lasts
@@ -37,23 +38,22 @@ function initialize() {
 
         config = data
 
-        if (!data.connected) {
-            toggleWifiEdit()
-            return
-        }
-
         if (!data.configured) {
-            togglePPEdit()
+            config.connected ? togglePPEdit() : toggleWifiEdit()
             return
         }
+        
+        !config.logged_in && body.classList.add('pp-error')
+        !config.connected && body.classList.add('disconnected')
 
         // Update images every minute
         syncInterval = window.setInterval(() => {
             sync()
         }, 60 * 1000)
 
-        delay = parseInt(config.delay)
-        fade = parseInt(config.fade)
+        delay = parseInt(config.delay || 10)
+        fade = parseInt(config.fade || 2)
+        slideTime = delay * 1000
 
         // Sets time it takes to fade from one image to another
         document.documentElement.style.setProperty('--transitionTime', fade + `s`);
@@ -103,6 +103,11 @@ function getNext(i, rev) {
 }
 
 function sync(prompted) {
+    if (!config.connected) {
+        prompted && pageMessage('Cannot sync images. Wifi not connected.', 3000, 'danger')
+        return
+    }
+
     clearInterval(syncInterval)
     ajax('GET', '/sync').then(resp => {
         const data = safeJSON(resp)
@@ -234,6 +239,18 @@ function safeJSON(string) {
         return string
     }
 }
+function timeToText(seconds) {
+    if (seconds < 60) return `${seconds} ${seconds > 1 ? 'seconds' : 'second'}`
+
+    const minutes = Math.floor(seconds / 60)
+    const minutesText = minutes > 1 ? 'minutes' : 'minute'
+    const secs = seconds % 60
+    const secsText = secs > 1 ? 'seconds' : 'second'
+
+    if (secs <= 0) return `${minutes} ${minutesText}`
+
+    return `${minutes} ${minutesText} ${secs} ${secsText}`
+}
 function ajax(method, url, data) {
     return new Promise(async (resolve, reject) => {
         
@@ -259,9 +276,25 @@ function ajax(method, url, data) {
     })
 }
 
+toggleSettings.addEventListener('click', () => {
+    toggleEditSettings()
+})
 const detailsForm = document.querySelector('#settingsForm')
 detailsForm.addEventListener('submit', event => {
     event.preventDefault()
+
+    const delayInp = detailsForm.querySelector('input[name="delay"]')
+    const fadeInp = detailsForm.querySelector('input[name="fade"]')
+
+    config.fade = fadeInp.value
+    config.delay = delayInp.value
+
+    clearTimeout(slideTimeout)
+        slideTimeout = setTimeout(() => {
+        if (paused) return
+        slide()
+    }, config.delay * 1000)
+    document.documentElement.style.setProperty('--transitionTime', fade + `s`);
 
     const formData = new FormData(detailsForm)
 
@@ -269,14 +302,6 @@ detailsForm.addEventListener('submit', event => {
         const data = safeJSON(result)
 
         config = data
-
-        document.documentElement.style.setProperty('--transitionTime', fade + `s`);
-
-        clearTimeout(slideTimeout)
-        slideTimeout = setTimeout(() => {
-            if (paused) return
-            slide()
-        }, config.delay * 1000)
 
         slideShowSettings.classList.remove('show')
         body.classList.remove('active')
@@ -286,7 +311,6 @@ detailsForm.addEventListener('submit', event => {
     })
 
 })
-
 const loginForm = document.querySelector('#loginForm')
 loginForm.addEventListener('submit', event => {
     event.preventDefault()
@@ -372,19 +396,6 @@ function adjustAttribute(attr, steps, max) {
     
 }
 
-function timeToText(seconds) {
-    if (seconds < 60) return `${seconds} ${seconds > 1 ? 'seconds' : 'second'}`
-
-    const minutes = Math.floor(seconds / 60)
-    const minutesText = minutes > 1 ? 'minutes' : 'minute'
-    const secs = seconds % 60
-    const secsText = secs > 1 ? 'seconds' : 'second'
-
-    if (secs <= 0) return `${minutes} ${minutesText}`
-
-    return `${minutes} ${minutesText} ${secs} ${secsText}`
-}
-
 function togglePPEdit() {
     const uri = photoPrismLogin.querySelector('input[name="uri"]')
     const username = photoPrismLogin.querySelector('input[name="username"]')
@@ -396,15 +407,90 @@ function togglePPEdit() {
     slideShowSettings.classList.remove('show')
     photoPrismLogin.classList.add('show')
 }
-
 function toggleWifiEdit() {
-    const network = wifiEdit.querySelector('input[name="network"]')
-
-    network.value = config.network
-
+    wifiEdit.classList.add('show')
     body.classList.add('active')
     slideShowSettings.classList.remove('show')
-    wifiEdit.classList.add('show')
+
+    getNetworks().then(networks => {
+        const network = wifiEdit.querySelector('select[name="network"]')
+
+        createNetworkOptions(network, networks, config.network)
+        
+        wifiEdit.classList.add('loaded')
+        
+    }).catch(error => {
+        error && console.error(error)
+        wifiEdit.classList.add('error')
+    })
+}
+function toggleEditSettings() {
+    const delayInp = slideShowSettings.querySelector('input[name="delay"]')
+    const fadeInp = slideShowSettings.querySelector('input[name="fade"]')
+
+    delayInp.value = config.delay
+    fadeInp.value = config.fade
+
+    body.classList.add('active')
+    slideShowSettings.classList.add('show')
+}
+function createNetworkOptions(target, networks, current) {
+    let match = false
+
+    for (let i in networks) {
+        const net = networks[i]
+        const op = document.createElement('option')
+        op.vlaue = net
+        op.innerText = net
+
+        if (op == current) { op.selected = true; match = true }
+
+        target.appendChild(op)
+    }
+    
+    if (match) return
+
+    const op = document.createElement('option')
+    op.value = null
+    op.selected = true
+    op.disabled = true
+    op.innerText = '--- Select Network ---'
+    target.children[0].before(op)
+}
+function getNetworks() {
+    return new Promise((resolve, reject) => {
+        const dummies = [
+            'For the Brave',
+            'Network 2',
+            'Network 3',
+            'Another Network',
+            'Another Network - 2g'
+        ]
+        window.setTimeout(() => {
+            resolve(dummies)
+        }, 3000)
+    
+        // ajax('GET', '/networks').then(response => {
+        //     const myRegexp = /"([^"]*)"/g
+        //     const ssids = []
+        //     let match = myRegexp.exec(response);
+        //     do {
+        //         if (match != null) {
+        //             let text = match[1] ? match[1] : match[0]
+        //             if (text != "" && text != '""') {
+        //                 ssids.push(text);
+        //             }
+        //         }
+        //         match = myRegexp.exec(response);
+        //     } while (match != null);
+            
+        //     resolve(ssids)
+        // }).catch(error => {
+        //     error && console.error(error)
+        //     pageMessage('Error getting network list.', 3000, 'danger')
+        //     reject(error)
+        // })
+    })
 }
 
 // Keys meant to be from ui buttons (temp regular keystrokes)
@@ -433,6 +519,8 @@ document.addEventListener('mousemove', () => {
 })
 
 
+
+
 // ---VVV--- Admin controls ---VVV---
 // document.addEventListener('click', () => {
 //     slide()
@@ -445,21 +533,7 @@ document.addEventListener('keydown', event => {
     event.preventDefault()
 
     if (event.key == 'B') {
-        ajax('GET', '/networks').then(response => {
-            const myRegexp = /"([^"]*)"/g
-            const ssids = []
-            let match = myRegexp.exec(response);
-            do {
-                if (match != null) {
-                    let text = match[1] ? match[1] : match[0]
-                    if (text != "" && text != '""') {
-                        ssids.push(text);
-                    }
-                }
-                match = myRegexp.exec(response);
-            } while (match != null);
-            console.log(ssids)
-        })
+        
     }
 
     if (event.key == 'O') {

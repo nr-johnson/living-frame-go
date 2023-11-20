@@ -19,6 +19,24 @@ body {
 body.active, body.interacting {
     cursor: default;
 }
+body.pp-error::after, body.disconnected::after {
+    content: "";
+    display: block;
+    position: absolute;
+    top: 1rem;
+    right: 1.5rem;
+    background-image: url("/static/common/pp-off.png");
+    background-size: contain;
+    background-position: center;
+    height: 2rem;
+    width: 2rem;
+    opacity: .2;
+    border-radius: 50%;
+}
+
+body.disconnected::after {
+    background-image: url("/static/common/wifi-off.svg");
+}
 
 main {
     pointer-events: none;
@@ -224,7 +242,25 @@ main {
     position: absolute;
     z-index: 1000;
 }
-
+#toggleSettings {
+    position: absolute;
+    top: 1rem;
+    left: 1.5rem;
+    height: 2rem;
+    width: 2rem;
+    cursor: pointer;
+    background-image: url("/static/common/list.svg");
+    background-size: contain;
+    background-position: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: .25s;
+}
+body.interacting #toggleSettings {
+    opacity: 1;
+    pointer-events: all;
+    transition: .25s;
+}
 
 button {
     padding: 4px 12px 6px 12px;
@@ -254,7 +290,7 @@ form button {
     left: 100%;
     transform: translateX(-100%);
 }
-form input {
+form input, form select {
     background: transparent;
     width: 100%;
     border: none;
@@ -302,6 +338,56 @@ form input.error {
 @keyframes slideOut {
     from { opacity: 1; transform: translateX(0); }
     to { opacity: 0; transform: translateX(-100%); }
+}
+
+#wifiEdit:not(.loaded) .dialog::before {
+    content: "";
+    display: block;
+    position: absolute;
+    z-index: 5;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: 8px;
+    background: var(--color1, white);
+}
+
+#wifiEdit:not(.loaded) .dialog::after {
+    content: "Retrieving network list...";
+    display: block;
+    position: absolute;
+    z-index: 5;
+    bottom: 2rem;
+    left: 0;
+    width: 100%;
+    text-align: center;
+    color: var(--color2, black);
+}
+
+#wifiEdit:not(.loaded)::after {
+    content: "";
+    display: block;
+    position: absolute;
+    z-index: 5;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 4rem;
+    height: 4rem;
+    border-radius: 50%;
+    border-top: 2px solid var(--color2, black);
+    border-right: 2px solid var(--color2, black);
+    border-bottom: 2px solid transparent;
+    border-left: 2px solid transparent;
+    animation-name: loading;
+    animation-duration: 1s;
+    animation-timing-function: linear;
+    animation-iteration-count: infinite;
+}
+@keyframes loading {
+    from { transform: translate(-50%, -50%) rotate(0); }
+    to { transform: translate(-50%, -50%) rotate(360deg); }
 }
 
 .flex-to-bottom {
