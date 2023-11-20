@@ -256,7 +256,7 @@ main {
     pointer-events: none;
     transition: .25s;
 }
-body.interacting #toggleSettings {
+body:not(.active).interacting #toggleSettings {
     opacity: 1;
     pointer-events: all;
     transition: .25s;

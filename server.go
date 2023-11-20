@@ -50,6 +50,7 @@ var (
 	albumName = "Living Frame"
 	imagesDir = "./static/images"
 	configFile = "./config.json"
+	wifiFile = "/etc/wpa_supplicant/wpa_supplicant.conf"
 )
 
 
@@ -224,9 +225,25 @@ func main() {
 		return c.String(http.StatusOK, string(out))
 	})
 	
+	e.GET("/checkconnection", func(c echo.Context) error {
+		
+	})
+
 	// e.GET("/shutdown", func(c echo.Context) error {
+		// cmdStruct := exec.Command("sudo", "shutdown", "now")
+
+		// out,err := cmdStruct.Output()
+		// if err != nil {
+		// 	fmt.Println(err)
+		// }
+
+		// fmt.Println(string(out))
+
+		// return c.String(http.StatusOK, string(out))
 
 	// })
+
+
 
 	e.Logger.Fatal(e.Start(":1323"))
 }
