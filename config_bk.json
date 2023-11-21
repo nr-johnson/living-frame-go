@@ -1,0 +1,12 @@
+{
+"username": "johnson",
+"password": "JohnsonMedia!",
+"logged_in": false,
+"network": "",
+"network_password": "",
+"connected": true,
+"uri": "https://media.nrjohnson.net",
+"delay": "10",
+"fade": "2",
+"configured": true
+}
