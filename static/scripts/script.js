@@ -518,9 +518,6 @@ document.addEventListener('mousemove', () => {
 
 })
 
-
-
-
 // ---VVV--- Admin controls ---VVV---
 // document.addEventListener('click', () => {
 //     slide()
