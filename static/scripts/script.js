@@ -20,6 +20,8 @@ formsConts.forEach(cont => {
     const form = cont.querySelector('form')
 
     background.addEventListener('click', () => {
+        if (body.classList.contains('setup')) return
+
         body.classList.remove('active')
         cont.classList.remove('show')
         form.reset()
@@ -39,6 +41,7 @@ function initialize() {
         config = data
 
         if (!data.configured) {
+            body.classList.add('setup')
             config.connected ? togglePPEdit() : toggleWifiEdit()
             return
         }
@@ -103,30 +106,35 @@ function getNext(i, rev) {
 }
 
 function sync(prompted) {
-    if (!config.connected) {
-        prompted && pageMessage('Cannot sync images. Wifi not connected.', 3000, 'danger')
-        return
-    }
-
-    clearInterval(syncInterval)
-    ajax('GET', '/sync').then(resp => {
-        const data = safeJSON(resp)
-
-        if (data.Changed) {
-            window.location.reload()
+    return new Promise((resolve, reject) => {
+        if (!config.connected) {
+            prompted && pageMessage('Cannot sync images. Wifi not connected.', 3000, 'danger')
+            return
         }
-        if (prompted) {
-            pageMessage('Images synced successfully!', 3000, 'subtle success')
-        }
+    
+        clearInterval(syncInterval)
+        ajax('GET', '/sync').then(resp => {
+            const data = safeJSON(resp)
+    
+            if (data.Changed) {
+                window.location.reload()
+            }
+            if (prompted) {
+                pageMessage('Images synced successfully!', 3000, 'subtle success')
+            }
+    
+            // Restart 
+            syncInterval = setInterval(() => {
+                sync()
+            }, 60 * 1000)
 
-        // Restart 
-        syncInterval = setInterval(() => {
-            sync()
-        }, 60 * 1000)
-        
-    }).catch(error => {
-        console.error(error)
-        pageMessage('Error syncing photos', 3000, 'danger')
+            resolve()
+            
+        }).catch(error => {
+            console.error(error)
+            pageMessage('Error syncing photos', 3000, 'danger')
+            reject()
+        })
     })
 }
 
@@ -321,8 +329,10 @@ loginForm.addEventListener('submit', event => {
 
     const formData = new FormData(loginForm)
 
-    ajax('POST', loginForm.action, formData).then(result => {
+    ajax('POST', loginForm.action, formData).then(async result => {
         const data = safeJSON(result)
+
+        alert('Hello!')
 
         if (!data.configured) {
 
@@ -338,6 +348,8 @@ loginForm.addEventListener('submit', event => {
             return
         }
 
+        await sync(true)
+
         window.location.reload()
 
     }).catch(error => {
@@ -346,9 +358,40 @@ loginForm.addEventListener('submit', event => {
     })
 
 })
+const wifiForm = document.querySelector('#wifiForm')
+wifiForm.addEventListener('submit', event => {
+    event.preventDefault()
+    const button = wifiForm.querySelector('button')
+    button.classList.add('loading')
+
+    const data = new FormData(wifiForm)
+
+    ajax('POST', "/wifi", data).then(response => {
+        const data = safeJSON(response)
+        button.classList.remove('loading')
+
+        if (!data.connected) {
+            pageMessage(JSON.stringify(data), 60000, "danger")
+            return
+        }
+
+        config = data
+
+        wifiEdit.classList.remove('show')
+        pageMessage("Wifi connected!", 3000, "success")
+        
+        if (!config.logged_in) {
+            togglePPEdit()
+            return
+        }
+
+        body.classList.add('active')
+        slideShowSettings.classList.remove('show')
+    })
+})
 
 function logout() {
-    ajax('GET', '/logout').then(response => {
+    ajax('POST', '/logout').then(response => {
         pageMessage('You have been logged out', 3000, 'success')
 
         window.setTimeout(() => {
@@ -455,46 +498,37 @@ function createNetworkOptions(target, networks, current) {
     op.selected = true
     op.disabled = true
     op.innerText = '--- Select Network ---'
-    target.children[0].before(op)
+    target.children[0] ? target.children[0].before(op) : target.appendChild(op)
 }
 function getNetworks() {
-    return new Promise((resolve, reject) => {
-        const dummies = [
-            'For the Brave',
-            'Network 2',
-            'Network 3',
-            'Another Network',
-            'Another Network - 2g'
-        ]
-        window.setTimeout(() => {
-            resolve(dummies)
-        }, 3000)
-    
-        // ajax('GET', '/networks').then(response => {
-        //     const myRegexp = /"([^"]*)"/g
-        //     const ssids = []
-        //     let match = myRegexp.exec(response);
-        //     do {
-        //         if (match != null) {
-        //             let text = match[1] ? match[1] : match[0]
-        //             if (text != "" && text != '""') {
-        //                 ssids.push(text);
-        //             }
-        //         }
-        //         match = myRegexp.exec(response);
-        //     } while (match != null);
+    return new Promise((resolve, reject) => {    
+        ajax('GET', '/networks').then(response => {
+            const myRegexp = /"([^"]*)"/g
+            const ssids = []
+            let match = myRegexp.exec(response);
+            do {
+                if (match != null) {
+                    let text = match[1] ? match[1] : match[0]
+                    if (text != "" && text != '""') {
+                        ssids.push(text);
+                    }
+                }
+                match = myRegexp.exec(response);
+            } while (match != null);
             
-        //     resolve(ssids)
-        // }).catch(error => {
-        //     error && console.error(error)
-        //     pageMessage('Error getting network list.', 3000, 'danger')
-        //     reject(error)
-        // })
+            resolve(ssids)
+        }).catch(error => {
+            error && console.error(error)
+            pageMessage('Error getting network list.', 3000, 'danger')
+            reject(error)
+        })
     })
 }
 
 // Keys meant to be from ui buttons (temp regular keystrokes)
 document.addEventListener('keydown', event => {
+
+    if (body.classList.contains('active')) return
 
     // toggle animation settings
     if (event.key == 'd') {
