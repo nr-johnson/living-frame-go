@@ -18,7 +18,7 @@ The front end runs in a browser so all the code that manages the display images.
 
 Buttons are manages using Python. The PI's GPIO pins made detecting input pretty easy. There is a delay and fade duration setting, the ability to scroll back and forth through the images, sync the images, and shut off the device.
 
-Managing user input was a challange. I ended up creating a JSON file that all the different componants look to. When a button is pressed, the Python GPIO script updates the appropriate setting within that file.
+Managing user input was a challange. I ended up creating a JSON file that all the different componants look to (for security reasons that file is excluded from the repository). When a button is pressed, the Python GPIO script updates the appropriate setting within that file.
 The front end javascript will periodically send a request to the server for updated settings. The Go app will then read the JSON file and send the content down and the Javascript will initiate any changes. I couldn't find a more seamless way to get the three languages in their respective contexts to communiate with eachother. But the system works well.
 
 ## Assembled
